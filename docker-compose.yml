@@ -1,0 +1,45 @@
+version: "3"
+services: 
+  web:
+    build: .
+    command: bash -c "python manage.py runserver 0.0.0.0:8080"
+    container_name: E_WalletZ_API
+    restart: always
+    volumes:
+      - .:/E_WalletZ
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - E_WalletZ_net
+
+  postgres:
+    container_name: E_WalletZ_DB
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: 'E_WalletZ_user'
+      POSTGRES_PASSWORD: 'E_WalletZ_password'
+      PGDATE: /data/E_WalletZ_postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U E_WalletZ_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres:/data/E_WalletZ_postgres
+    ports:
+      - '5432:5432'
+    networks:
+      - E_WalletZ_net
+
+
+networks:
+  E_WalletZ_net:
+    driver: bridge
+
+volumes:
+  postgres:
